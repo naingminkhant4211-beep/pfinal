@@ -180,50 +180,42 @@ document.addEventListener('DOMContentLoaded', () => {
        CONTACT FORM SUBMIT UI FEEDBACK
        ---------------------------------------------------- */
     if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const submitBtn = contactForm.querySelector('.btn-submit');
-            const originalBtnContent = submitBtn.innerHTML;
-            
-            // Set loading state
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = '0.7';
-            submitBtn.innerHTML = `
-                <span>Sending...</span>
-                <svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25"></circle>
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-                </svg>
-            `;
-            
-            // Add CSS animation for spinner on the fly if needed
-            if (!document.getElementById('spinner-style')) {
-                const style = document.createElement('style');
-                style.id = 'spinner-style';
-                style.innerHTML = '@keyframes spin { 100% { transform: rotate(360deg); } }';
-                document.head.appendChild(style);
-            }
-            
-            // Simulate fake submission timeout
-            setTimeout(() => {
-                // Clear inputs
+    contactForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const submitBtn = contactForm.querySelector(".btn-submit");
+        const originalBtnContent = submitBtn.innerHTML;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "<span>Sending...</span>";
+
+        try {
+            const response = await fetch(contactForm.action, {
+                method: "POST",
+                body: new FormData(contactForm),
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (response.ok) {
                 contactForm.reset();
-                
-                // Restore button
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.innerHTML = originalBtnContent;
-                
-                // Trigger Toast success popup
-                toast.classList.add('show');
-                
-                // Hide toast after 4 seconds
+
+                toast.classList.add("show");
+
                 setTimeout(() => {
-                    toast.classList.remove('show');
+                    toast.classList.remove("show");
                 }, 4000);
-                
-            }, 1500);
-        });
-    }
+            } else {
+                alert("Failed to send message.");
+            }
+
+        } catch (error) {
+            alert("Something went wrong while sending the message.");
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnContent;
+    });
+}
 });
